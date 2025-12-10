@@ -17,7 +17,7 @@ Dự án xử lý bài toán qua 2 giai đoạn chính:
 ## Cấu trúc Thư mục
 
 ```
-├── Link Dataset.txt              # File chứa liên kết hoặc thông tin về bộ dữ liệu sử dụng
+├── Link Dataset.txt              # Link Dataset
 ├── YOLO-Transformer-OCR.ipynb    # Notebook chính thực hiện toàn bộ quy trình từ Detection đến Recognition
 └── README.md                     # File mô tả dự án
 ```
