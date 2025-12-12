@@ -1,4 +1,4 @@
-# Dự án OCR: Phát hiện và Nhận dạng chữ trong hóa đơn (YOLO + Transformer)
+# OCR: Phát hiện và Nhận dạng chữ trong hóa đơn (YOLO + Transformer)
 
 Dự án này bao gồm mã nguồn Python (Jupyter Notebook) để thực hiện quy trình nhận dạng ký tự quang học (OCR) cho hóa đơn, kết hợp giữa mô hình phát hiện đối tượng (Object Detection) và mô hình nhận dạng chuỗi (Sequence Recognition).
 
