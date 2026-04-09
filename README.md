@@ -4,6 +4,8 @@ OCR Receipt Explorer is an end-to-end optical character recognition (OCR) projec
 
 **Deployed Link**: https://your-streamlit-cloud-url.streamlit.app/ (Coming soon)
 
+**Link Dataset & Models**: https://drive.google.com/file/d/1hj8DNQXyarTqFHp0Pq12kex0XUtDQtd2/view?usp=sharing
+
 ## Key Features
 
 - **Text Detection**: YOLOv8-based text region detection for precise localization of receipt content.
@@ -272,13 +274,7 @@ OCR_Receipt/
 ## Additional Resources
 
 - [HOW_TO_RUN.md](HOW_TO_RUN.md) - Detailed command references
-- [DEPLOY_WITH_GOOGLE_DRIVE.md](DEPLOY_WITH_GOOGLE_DRIVE.md) - Cloud deployment guide
-- [DEPLOYMENT_STRUCTURE.md](DEPLOYMENT_STRUCTURE.md) - Architecture overview
 - `notebooks/` - Tutorial notebooks with step-by-step examples
-
-## Now Restructuring the full README with detailed information
-
-If you only want to test the recognition pipeline, you still need the cache and tokenizer steps first.
 
 ## 🌐 Streamlit Web App
 
@@ -294,9 +290,6 @@ Features:
 - 📤 **Upload Custom**: Upload your own receipt image
 - 📊 **Live Visualization**: See bounding boxes and recognized text
 
-For detailed app usage, see [STREAMLIT_USER_GUIDE.md](STREAMLIT_USER_GUIDE.md)
-
-For deployment on Streamlit Community Cloud, see [DEPLOYMENT_STRUCTURE.md](DEPLOYMENT_STRUCTURE.md)
 
 ## Notes
 
@@ -304,5 +297,4 @@ For deployment on Streamlit Community Cloud, see [DEPLOYMENT_STRUCTURE.md](DEPLO
 - Generated caches, checkpoints, and training logs should stay inside `artifacts/` and should not be pushed to GitHub.
 - The project is designed so you can train again from zero without editing the notebook.
 - The Streamlit app uses local checkpoints by default: `artifacts/detector_runs/yolo_textdet/weights/best.pt` and `artifacts/checkpoints/recognition_best.pt`.
-- If you store the weights elsewhere, update the paths in the app sidebar before running inference.
 
