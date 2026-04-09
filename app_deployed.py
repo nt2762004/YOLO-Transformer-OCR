@@ -185,7 +185,7 @@ def download_from_gdrive():
                             for attempt in range(max_retries):
                                 try:
                                     status_info.info(f"📥 Download attempt {attempt+1}/{max_retries}...")
-                                    urllib.request.urlretrieve(url, str(output_path), timeout=300)
+                                    urllib.request.urlretrieve(url, str(output_path))
                                     return True
                                 except Exception as e:
                                     status_info.warning(f"⚠️ Attempt {attempt+1} failed: {str(e)}")
