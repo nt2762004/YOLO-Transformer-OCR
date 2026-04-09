@@ -1,0 +1,55 @@
+# Models and artifacts (too large, auto-download from Google Drive)
+.streamlit_models/
+artifacts/checkpoints/
+artifacts/detector_runs/
+artifacts/cache/
+
+# Training cache and data
+data/vn_receipt/labels/
+data/vn_receipt/images/train/
+data/vn_receipt/images/valid/
+data/en_receipt/labels/
+data/en_receipt/images/train/
+data/en_receipt/images/valid/
+
+# Python and IDE
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Results and outputs
+results/
+*.png
+*.jpg
+*.jpeg
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Streamlit cache
+.streamlit/cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log

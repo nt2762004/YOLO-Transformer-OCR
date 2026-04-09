@@ -1,0 +1,5 @@
+path: "C:/Users/nguye/OneDrive/Desktop/Deep Learning/Tổng kết/Final_DeepLearning/Task2/Final_version/data/vn_receipt"
+train: "C:/Users/nguye/OneDrive/Desktop/Deep Learning/Tổng kết/Final_DeepLearning/Task2/Final_version/data/vn_receipt/images/train"
+val: "C:/Users/nguye/OneDrive/Desktop/Deep Learning/Tổng kết/Final_DeepLearning/Task2/Final_version/data/vn_receipt/images/val"
+names:
+  0: text

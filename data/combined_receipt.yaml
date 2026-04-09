@@ -1,0 +1,5 @@
+path: "/home/tuan/projects/OCR_Receipt/artifacts/combined_receipt"
+train: "images/train"
+val: "images/val"
+names:
+  0: text
