@@ -148,155 +148,59 @@ GDRIVE_CONFIG = {
 @st.cache_resource
 def download_from_gdrive():
     """Download models and datasets from Google Drive on first run."""
-    import os
     import zipfile
-    import shutil
     
     base_dir = Path("/tmp/ocr_receipt")
     base_dir.mkdir(parents=True, exist_ok=True)
     
-    # File ID của Data_Models_OCR.zip (lấy từ Google Drive sharing link)
     zip_file_id = GDRIVE_CONFIG.get("zip_file_id", None)
-    
     status_info = st.empty()
     
     try:
-        if zip_file_id and zip_file_id != "YOUR_ZIP_FILE_ID":
-            # Check if already extracted
-            if not (base_dir / "vn_receipt").exists() or not (base_dir / "best.pt").exists():
-                status_info.info("📦 Downloading from Google Drive (this may take 5-10 minutes)...")
-                # Download zip file
-                zip_path = base_dir / "data_models.zip"
-                try:
-                    import socket
-                    
-                    socket.setdefaulttimeout(300)  # 5 minute timeout
-                    
-                    # Try gdown first
-                    status_info.info("📥 Attempting download with gdown...")
-                    result = gdown.download(
-                        url=f"https://drive.google.com/uc?id={zip_file_id}",
-                        output=str(zip_path),
-                        quiet=False,
-                        resume=True
-                    )
-                    
-                    # If gdown fails or file too small, try requests with proper headers
-                    if result is None or not zip_path.exists() or zip_path.stat().st_size < 1_000_000:
-                        if zip_path.exists():
-                            zip_path.unlink()  # Remove incomplete file
-                        
-                        status_info.info("📥 gdown failed, trying requests with browser headers...")
-                        import requests
-                        
-                        url = f"https://drive.google.com/uc?id={zip_file_id}&export=download"
-                        
-                        def download_with_requests(drive_url, output_path, max_retries=3):
-                            """Download from Google Drive using requests with session."""
-                            for attempt in range(max_retries):
-                                try:
-                                    status_info.info(f"📥 Download attempt {attempt+1}/{max_retries}...")
-                                    
-                                    session = requests.Session()
-                                    response = session.get(drive_url, stream=True)
-                                    
-                                    # Check if we got a confirmation page instead of file
-                                    if 'confirm' in response.url or len(response.content) < 10000:
-                                        # Try with confirmation token
-                                        token = None
-                                        for line in response.iter_lines():
-                                            if 'download_warning' in str(line):
-                                                import re
-                                                match = re.search(r'confirm=([^&]+)', str(line))
-                                                if match:
-                                                    token = match.group(1)
-                                                    break
-                                        
-                                        if token:
-                                            response = session.get(f"{drive_url}&confirm={token}", stream=True)
-                                    
-                                    # Download with progress
-                                    total_size = int(response.headers.get('content-length', 0))
-                                    downloaded = 0
-                                    
-                                    with open(output_path, 'wb') as f:
-                                        for chunk in response.iter_content(chunk_size=8192):
-                                            if chunk:
-                                                f.write(chunk)
-                                                downloaded += len(chunk)
-                                                if total_size > 0:
-                                                    progress = (downloaded / total_size) * 100
-                                                    status_info.info(f"📥 Downloading... {progress:.1f}%")
-                                    
-                                    return True
-                                    
-                                except Exception as e:
-                                    status_info.warning(f"⚠️ Attempt {attempt+1} failed: {str(e)}")
-                                    if output_path.exists():
-                                        output_path.unlink()
-                                    if attempt == max_retries - 1:
-                                        raise
-                            return False
-                        
-                        download_with_requests(url, zip_path)
-                    
-                    # Validate downloaded file
-                    if not zip_path.exists():
-                        raise FileNotFoundError(f"Downloaded file not found at {zip_path}")
-                    
-                    file_size = zip_path.stat().st_size
-                    status_info.info(f"📦 Downloaded {file_size / 1_000_000:.1f} MB")
-                    
-                    if file_size < 1_000_000:
-                        raise ValueError(f"File too small ({file_size} bytes) - likely incomplete download")
-                    
-                    
-                    status_info.info("📦 Extracting files...")
-                    
-                    # Extract zip with validation
-                    try:
-                        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                            # Validate zip file integrity
-                            corrupt_file = zip_ref.testzip()
-                            if corrupt_file:
-                                raise zipfile.BadZipFile(f"Corrupted file in zip: {corrupt_file}")
-                            
-                            zip_ref.extractall(base_dir)
-                            status_info.success("✅ Extraction complete")
-                    except zipfile.BadZipFile as zip_error:
-                        zip_path.unlink()  # Remove corrupted file
-                        raise Exception(f"Corrupted zip file - download may be incomplete. Error: {str(zip_error)}")
-                    
-                    # Remove zip after extraction
-                    zip_path.unlink()
-                    
-                    status_info.success("✅ All files ready (models + datasets)")
-                
-                except Exception as gdown_error:
-                    status_info.error(f"❌ Google Drive download failed: {str(gdown_error)}")
-                    st.error(f"""
-                    **Download Error Details:**
-                    - File ID: {zip_file_id}
-                    - Error: {str(gdown_error)}
-                    
-                    **Solutions:**
-                    1. Check if File ID is correct
-                    2. Make sure the Google Drive file is publicly accessible
-                    3. Try again in a few moments
-                    """)
-                    return None, None
-        else:
+        # Check if already extracted
+        if (base_dir / "vn_receipt").exists() and (base_dir / "best.pt").exists():
+            status_info.success("✅ Data already available")
+            return str(base_dir), str(base_dir)
+        
+        if not zip_file_id or zip_file_id == "YOUR_ZIP_FILE_ID":
             status_info.error("❌ Please configure GDRIVE_CONFIG with your zip file ID")
-            status_info.info("Get ID from: https://drive.google.com/file/d/YOUR_FILE_ID/view")
             return None, None
         
-        status_info.empty()
+        zip_path = base_dir / "data_models.zip"
+        
+        # Download using gdown with confirmation flag
+        status_info.info("📥 Downloading from Google Drive... (this may take 10-15 minutes)")
+        
+        gdown.download(
+            f"https://drive.google.com/uc?id={zip_file_id}&confirm=t",
+            str(zip_path),
+            quiet=False
+        )
+        
+        # Validate file
+        if not zip_path.exists():
+            raise FileNotFoundError("Download failed - file not found")
+        
+        file_size = zip_path.stat().st_size
+        if file_size < 1_000_000:  # Less than 1MB = incomplete
+            zip_path.unlink()
+            raise ValueError(f"File too small ({file_size} bytes) - incomplete download")
+        
+        status_info.info(f"📦 Downloaded {file_size / 1_000_000_000:.2f} GB. Extracting...")
+        
+        # Extract zip
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(base_dir)
+        
+        # Remove zip to save space
+        zip_path.unlink()
+        
+        status_info.success("✅ All files ready!")
         return str(base_dir), str(base_dir)
     
     except Exception as e:
-        status_info.error(f"❌ Unexpected error: {e}")
-        import traceback
-        st.error(traceback.format_exc())
+        status_info.error(f"❌ Download failed: {str(e)}")
+        st.error(f"**Error:** {str(e)}\n\n**Troubleshooting:**\n1. Verify File ID: {zip_file_id}\n2. Check file is public\n3. Retry in a moment")
         return None, None
 
 
