@@ -155,29 +155,70 @@ def download_from_gdrive():
                 zip_path = base_dir / "data_models.zip"
                 try:
                     import urllib.request
+                    import socket
+                    
+                    socket.setdefaulttimeout(300)  # 5 minute timeout
                     
                     # Try gdown first
                     status_info.info("📥 Attempting download with gdown...")
                     result = gdown.download(
                         url=f"https://drive.google.com/uc?id={zip_file_id}",
                         output=str(zip_path),
-                        quiet=False
+                        quiet=False,
+                        timeout=300
                     )
                     
-                    # If gdown fails, try urllib (direct method)
-                    if result is None or not zip_path.exists():
-                        status_info.info("📥 gdown failed, trying direct download...")
-                        url = f"https://drive.google.com/uc?id={zip_file_id}&export=download"
-                        urllib.request.urlretrieve(url, str(zip_path))
+                    # If gdown fails or file too small, try urllib (direct method)
+                    if result is None or not zip_path.exists() or zip_path.stat().st_size < 1_000_000:
+                        if zip_path.exists():
+                            zip_path.unlink()  # Remove incomplete file
+                        
+                        status_info.info("📥 gdown failed, trying direct urllib download...")
+                        # Use confirm=t to bypass Google Drive's warning dialog
+                        url = f"https://drive.google.com/uc?id={zip_file_id}&confirm=t"
+                        
+                        def download_with_retry(url, output_path, max_retries=3):
+                            for attempt in range(max_retries):
+                                try:
+                                    status_info.info(f"📥 Download attempt {attempt+1}/{max_retries}...")
+                                    urllib.request.urlretrieve(url, str(output_path), timeout=300)
+                                    return True
+                                except Exception as e:
+                                    status_info.warning(f"⚠️ Attempt {attempt+1} failed: {str(e)}")
+                                    if output_path.exists():
+                                        output_path.unlink()
+                                    if attempt == max_retries - 1:
+                                        raise
+                            return False
+                        
+                        download_with_retry(url, zip_path)
                     
+                    # Validate downloaded file
                     if not zip_path.exists():
                         raise FileNotFoundError(f"Downloaded file not found at {zip_path}")
                     
+                    file_size = zip_path.stat().st_size
+                    status_info.info(f"📦 Downloaded {file_size / 1_000_000:.1f} MB")
+                    
+                    if file_size < 1_000_000:
+                        raise ValueError(f"File too small ({file_size} bytes) - likely incomplete download")
+                    
+                    
                     status_info.info("📦 Extracting files...")
                     
-                    # Extract zip
-                    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                        zip_ref.extractall(base_dir)
+                    # Extract zip with validation
+                    try:
+                        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                            # Validate zip file integrity
+                            corrupt_file = zip_ref.testzip()
+                            if corrupt_file:
+                                raise zipfile.BadZipFile(f"Corrupted file in zip: {corrupt_file}")
+                            
+                            zip_ref.extractall(base_dir)
+                            status_info.success("✅ Extraction complete")
+                    except zipfile.BadZipFile as zip_error:
+                        zip_path.unlink()  # Remove corrupted file
+                        raise Exception(f"Corrupted zip file - download may be incomplete. Error: {str(zip_error)}")
                     
                     # Remove zip after extraction
                     zip_path.unlink()
