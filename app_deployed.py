@@ -210,16 +210,22 @@ def download_from_gdrive():
 @st.cache_resource
 def load_models(artifacts_dir: str = None, device: str = "cpu"):
     """Load detector and recognizer models at startup."""
+    from ultralytics import YOLO
+    from src.infer import load_recognition_checkpoint
+    from src.tokenizer import CharTokenizer
+    from src.model import OCRModel
     
     # Use downloaded artifacts or local paths
     if artifacts_dir:
         # Models are directly in base directory from Google Drive
         detector_path = Path(artifacts_dir) / "best.pt"
         recognizer_path = Path(artifacts_dir) / "recognition_best.pt"
+        tokenizer_path = Path(artifacts_dir) / "char_tokenizer.json"
     else:
         paths = get_project_paths()
         detector_path = paths.artifacts_dir / "detector_runs/yolo_textdet/weights/best.pt"
         recognizer_path = paths.checkpoints_dir / "recognition_best.pt"
+        tokenizer_path = paths.artifacts_dir / "tokenizer" / "char_tokenizer.json"
     
     try:
         # Load detector
@@ -241,8 +247,24 @@ def load_models(artifacts_dir: str = None, device: str = "cpu"):
             recognizer = None
             tokenizer = None
         else:
-            recognizer, tokenizer = load_recognition_checkpoint(recognizer_path, device=device)
-            recognizer.to(device)  # Ensure on correct device
+            # Load checkpoint and override tokenizer path for deployment
+            checkpoint = torch.load(recognizer_path, map_location=device)
+            tokenizer = CharTokenizer.load(tokenizer_path)
+            
+            config = checkpoint["config"]
+            recognizer = OCRModel(
+                vocab_size=config["vocab_size"],
+                d_model=config["d_model"],
+                nhead=config["nhead"],
+                num_layers=config["decoder_layers"],
+                dim_feedforward=config["dim_feedforward"],
+                dropout=config["dropout"],
+                max_len=config["max_len"],
+            ).to(device)
+            recognizer.encoder.load_state_dict(checkpoint["encoder"])
+            recognizer.decoder.load_state_dict(checkpoint["decoder"])
+            recognizer.eval()
+            
             st.sidebar.success("✅ Recognizer loaded")
     except Exception as e:
         st.sidebar.error(f"❌ Error loading recognizer: {e}")
