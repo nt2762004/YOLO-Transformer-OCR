@@ -141,7 +141,7 @@ st.markdown(
 #                              ^^^^^^^^^^^^^^
 GDRIVE_CONFIG = {
     # ZIP file ID containing: best.pt, recognition_best.pt, char_tokenizer.json, en_receipt/, vn_receipt/
-    "zip_file_id": "1hj8DNQXyarTqFHp0Pq12kex0XUtDQtd2",  # Replace with your Data_Models_OCR.zip file ID
+    "zip_file_id": "1R-Fb23ysgbei2ienMpCcWlGX2KULF3Q8",  # Replace with your Data_Models_OCR.zip file ID
 }
 
 
