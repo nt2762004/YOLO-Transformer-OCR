@@ -18,7 +18,7 @@ import torch
 from PIL import Image
 
 from src.config import get_project_paths, get_training_config
-from src.detector import crop_boxes, detect_text_regions, draw_boxes
+from src.detector import crop_boxes, detect_text_regions
 from src.infer import load_recognition_checkpoint, recognize_text
 from src.model import OCRModel
 from src.tokenizer import CharTokenizer
@@ -378,33 +378,6 @@ def visualize_results_matplotlib(image: Image.Image, results: list[dict]):
     plt.tight_layout()
     
     return fig
-
-
-def export_results_image(image: Image.Image, results: list[dict]) -> Image.Image:
-    """Export image with bounding boxes and text (legacy OpenCV method)."""
-    
-    image_array = np.array(image)
-    boxes = np.array([result["box"] for result in results])
-    texts = [result["text"] for result in results]
-    confs = [result["confidence"] for result in results]
-    
-    # Draw boxes
-    canvas = image_array.copy()
-    for box, text, conf in zip(boxes, texts, confs):
-        x1, y1, x2, y2 = map(int, box)
-        cv2.rectangle(canvas, (x1, y1), (x2, y2), (0, 255, 0), 2)
-        label = f"{text} ({conf:.2f})"
-        cv2.putText(
-            canvas,
-            label,
-            (x1, y1 - 5),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
-            (0, 255, 0),
-            1,
-        )
-    
-    return Image.fromarray(canvas)
 
 
 def get_confidence_color(confidence: float) -> str:

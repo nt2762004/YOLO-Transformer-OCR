@@ -69,16 +69,7 @@ def crop_boxes(image: Image.Image, boxes: Iterable[Iterable[float]]) -> list[Ima
 
 
 def draw_boxes(image: np.ndarray, boxes: np.ndarray, texts: list[str] | None = None, confs: list[float] | None = None) -> np.ndarray:
-    import cv2  # Lazy import
-    
-    canvas = image.copy()
-    for index, box in enumerate(boxes):
-        x1, y1, x2, y2 = map(int, box)
-        cv2.rectangle(canvas, (x1, y1), (x2, y2), (0, 128, 255), 2)
-        label = "text"
-        if texts and index < len(texts):
-            label = texts[index]
-        if confs and index < len(confs):
-            label = f"{label} ({confs[index]:.2f})"
-        cv2.putText(canvas, label[:60], (x1, max(0, y1 - 6)), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 128, 255), 1, cv2.LINE_AA)
-    return canvas
+    """Draw bounding boxes on image (not used in deployed app - kept for compatibility)."""
+    # This function requires cv2 which is not available in headless environments
+    # Use visualize_results_matplotlib() from app_deployed.py instead
+    raise NotImplementedError("draw_boxes() requires cv2. Use matplotlib visualization instead.")
