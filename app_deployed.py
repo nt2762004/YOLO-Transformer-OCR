@@ -164,8 +164,7 @@ def download_from_gdrive():
                     result = gdown.download(
                         url=f"https://drive.google.com/uc?id={zip_file_id}",
                         output=str(zip_path),
-                        quiet=False,
-                        timeout=300
+                        quiet=False
                     )
                     
                     # If gdown fails or file too small, try urllib (direct method)
