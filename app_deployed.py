@@ -165,11 +165,9 @@ def download_from_gdrive():
             # Check if already extracted
             if not (base_dir / "vn_receipt").exists() or not (base_dir / "best.pt").exists():
                 status_info.info("📦 Downloading from Google Drive (this may take 5-10 minutes)...")
-                
                 # Download zip file
                 zip_path = base_dir / "data_models.zip"
                 try:
-                    import urllib.request
                     import socket
                     
                     socket.setdefaulttimeout(300)  # 5 minute timeout
@@ -179,24 +177,59 @@ def download_from_gdrive():
                     result = gdown.download(
                         url=f"https://drive.google.com/uc?id={zip_file_id}",
                         output=str(zip_path),
-                        quiet=False
+                        quiet=False,
+                        resume=True
                     )
                     
-                    # If gdown fails or file too small, try urllib (direct method)
+                    # If gdown fails or file too small, try requests with proper headers
                     if result is None or not zip_path.exists() or zip_path.stat().st_size < 1_000_000:
                         if zip_path.exists():
                             zip_path.unlink()  # Remove incomplete file
                         
-                        status_info.info("📥 gdown failed, trying direct urllib download...")
-                        # Use confirm=t to bypass Google Drive's warning dialog
-                        url = f"https://drive.google.com/uc?id={zip_file_id}&confirm=t"
+                        status_info.info("📥 gdown failed, trying requests with browser headers...")
+                        import requests
                         
-                        def download_with_retry(url, output_path, max_retries=3):
+                        url = f"https://drive.google.com/uc?id={zip_file_id}&export=download"
+                        
+                        def download_with_requests(drive_url, output_path, max_retries=3):
+                            """Download from Google Drive using requests with session."""
                             for attempt in range(max_retries):
                                 try:
                                     status_info.info(f"📥 Download attempt {attempt+1}/{max_retries}...")
-                                    urllib.request.urlretrieve(url, str(output_path))
+                                    
+                                    session = requests.Session()
+                                    response = session.get(drive_url, stream=True)
+                                    
+                                    # Check if we got a confirmation page instead of file
+                                    if 'confirm' in response.url or len(response.content) < 10000:
+                                        # Try with confirmation token
+                                        token = None
+                                        for line in response.iter_lines():
+                                            if 'download_warning' in str(line):
+                                                import re
+                                                match = re.search(r'confirm=([^&]+)', str(line))
+                                                if match:
+                                                    token = match.group(1)
+                                                    break
+                                        
+                                        if token:
+                                            response = session.get(f"{drive_url}&confirm={token}", stream=True)
+                                    
+                                    # Download with progress
+                                    total_size = int(response.headers.get('content-length', 0))
+                                    downloaded = 0
+                                    
+                                    with open(output_path, 'wb') as f:
+                                        for chunk in response.iter_content(chunk_size=8192):
+                                            if chunk:
+                                                f.write(chunk)
+                                                downloaded += len(chunk)
+                                                if total_size > 0:
+                                                    progress = (downloaded / total_size) * 100
+                                                    status_info.info(f"📥 Downloading... {progress:.1f}%")
+                                    
                                     return True
+                                    
                                 except Exception as e:
                                     status_info.warning(f"⚠️ Attempt {attempt+1} failed: {str(e)}")
                                     if output_path.exists():
@@ -205,7 +238,7 @@ def download_from_gdrive():
                                         raise
                             return False
                         
-                        download_with_retry(url, zip_path)
+                        download_with_requests(url, zip_path)
                     
                     # Validate downloaded file
                     if not zip_path.exists():
