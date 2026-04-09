@@ -6,6 +6,9 @@ OCR Receipt Explorer is an end-to-end optical character recognition (OCR) projec
 
 **Link Dataset & Models**: https://drive.google.com/file/d/1R-Fb23ysgbei2ienMpCcWlGX2KULF3Q8/view?usp=sharing
 
+<img width="1907" height="944" alt="image" src="https://github.com/user-attachments/assets/912f6065-1f5d-40c3-b456-51380046dc9f" />
+
+
 ## Key Features
 
 - **Text Detection**: YOLOv8-based text region detection for precise localization of receipt content.
