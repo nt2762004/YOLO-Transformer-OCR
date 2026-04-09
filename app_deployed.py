@@ -153,22 +153,50 @@ def download_from_gdrive():
                 
                 # Download zip file
                 zip_path = base_dir / "data_models.zip"
-                gdown.download(
-                    url=f"https://drive.google.com/uc?id={zip_file_id}",
-                    output=str(zip_path),
-                    quiet=False
-                )
+                try:
+                    import urllib.request
+                    
+                    # Try gdown first
+                    status_info.info("📥 Attempting download with gdown...")
+                    result = gdown.download(
+                        url=f"https://drive.google.com/uc?id={zip_file_id}",
+                        output=str(zip_path),
+                        quiet=False
+                    )
+                    
+                    # If gdown fails, try urllib (direct method)
+                    if result is None or not zip_path.exists():
+                        status_info.info("📥 gdown failed, trying direct download...")
+                        url = f"https://drive.google.com/uc?id={zip_file_id}&export=download"
+                        urllib.request.urlretrieve(url, str(zip_path))
+                    
+                    if not zip_path.exists():
+                        raise FileNotFoundError(f"Downloaded file not found at {zip_path}")
+                    
+                    status_info.info("📦 Extracting files...")
+                    
+                    # Extract zip
+                    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                        zip_ref.extractall(base_dir)
+                    
+                    # Remove zip after extraction
+                    zip_path.unlink()
+                    
+                    status_info.success("✅ All files ready (models + datasets)")
                 
-                status_info.info("📦 Extracting files...")
-                
-                # Extract zip
-                with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                    zip_ref.extractall(base_dir)
-                
-                # Remove zip after extraction
-                zip_path.unlink()
-                
-                status_info.success("✅ All files ready (models + datasets)")
+                except Exception as gdown_error:
+                    status_info.error(f"❌ Google Drive download failed: {str(gdown_error)}")
+                    st.error(f"""
+                    **Download Error Details:**
+                    - File ID: {zip_file_id}
+                    - Error: {str(gdown_error)}
+                    
+                    **Solutions:**
+                    1. Check if File ID is correct
+                    2. Make sure the Google Drive file is publicly accessible
+                    3. Try again in a few moments
+                    """)
+                    return None, None
         else:
             status_info.error("❌ Please configure GDRIVE_CONFIG with your zip file ID")
             status_info.info("Get ID from: https://drive.google.com/file/d/YOUR_FILE_ID/view")
@@ -178,7 +206,7 @@ def download_from_gdrive():
         return str(base_dir), str(base_dir)
     
     except Exception as e:
-        status_info.error(f"❌ Download error: {e}")
+        status_info.error(f"❌ Unexpected error: {e}")
         import traceback
         st.error(traceback.format_exc())
         return None, None
