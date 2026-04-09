@@ -4,6 +4,8 @@ OCR Receipt Explorer is an end-to-end optical character recognition (OCR) projec
 
 **Deployed Link**: https://your-streamlit-cloud-url.streamlit.app/ (Coming soon)
 
+**Link Dataset & Models**: https://drive.google.com/file/d/1hj8DNQXyarTqFHp0Pq12kex0XUtDQtd2/view?usp=sharing
+
 ## Key Features
 
 - **Text Detection**: YOLOv8-based text region detection for precise localization of receipt content.
