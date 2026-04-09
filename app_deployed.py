@@ -5,11 +5,6 @@ Supports Vietnamese and English receipt OCR with text detection and recognition.
 
 from __future__ import annotations
 
-# Setup environment for headless OpenCV before any imports
-import os
-os.environ['DISPLAY'] = ''
-os.environ['LIBGL_ALWAYS_INDIRECT'] = '1'
-
 import io
 import zipfile
 from pathlib import Path

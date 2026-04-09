@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
-import cv2
 import numpy as np
 import torch
 from PIL import Image
@@ -70,6 +69,8 @@ def crop_boxes(image: Image.Image, boxes: Iterable[Iterable[float]]) -> list[Ima
 
 
 def draw_boxes(image: np.ndarray, boxes: np.ndarray, texts: list[str] | None = None, confs: list[float] | None = None) -> np.ndarray:
+    import cv2  # Lazy import
+    
     canvas = image.copy()
     for index, box in enumerate(boxes):
         x1, y1, x2, y2 = map(int, box)
