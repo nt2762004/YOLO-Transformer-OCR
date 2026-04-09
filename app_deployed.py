@@ -5,6 +5,21 @@ Supports Vietnamese and English receipt OCR with text detection and recognition.
 
 from __future__ import annotations
 
+# Monkeypatch cv2 to avoid headless display errors
+import sys
+from unittest.mock import MagicMock
+
+def mock_cv2_bootstrap():
+    """Bypass OpenCV's bootstrap that requires display."""
+    pass
+
+# Pre-import cv2-headless and mock the bootstrap
+try:
+    import cv2 as _cv2_module
+    _cv2_module.bootstrap = mock_cv2_bootstrap
+except:
+    pass
+
 import io
 import zipfile
 from pathlib import Path
