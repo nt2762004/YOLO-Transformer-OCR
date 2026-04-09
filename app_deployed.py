@@ -5,6 +5,11 @@ Supports Vietnamese and English receipt OCR with text detection and recognition.
 
 from __future__ import annotations
 
+# Setup environment for headless OpenCV before any imports
+import os
+os.environ['DISPLAY'] = ''
+os.environ['LIBGL_ALWAYS_INDIRECT'] = '1'
+
 import io
 import zipfile
 from pathlib import Path
@@ -382,7 +387,6 @@ def visualize_results_matplotlib(image: Image.Image, results: list[dict]):
 
 def export_results_image(image: Image.Image, results: list[dict]) -> Image.Image:
     """Export image with bounding boxes and text (legacy OpenCV method)."""
-    import cv2  # Lazy import - only when needed
     
     image_array = np.array(image)
     boxes = np.array([result["box"] for result in results])
