@@ -6,6 +6,7 @@ Supports Vietnamese and English receipt OCR with text detection and recognition.
 from __future__ import annotations
 
 import io
+import zipfile
 from pathlib import Path
 
 import cv2
@@ -121,11 +122,12 @@ st.markdown(
 # ============================================================================
 # Google Drive Download Configuration
 # ============================================================================
-# Replace with your actual Google Drive folder ID
-# Get ID from URL: https://drive.google.com/drive/folders/FOLDER_ID
+# Get File ID from Google Drive sharing link:
+# https://drive.google.com/file/d/FILE_ID_HERE/view
+#                              ^^^^^^^^^^^^^^
 GDRIVE_CONFIG = {
-    # Combined folder containing: models (best.pt, recognition_best.pt, char_tokenizer.json) + datasets (en_receipt, vn_receipt)
-    "combined_folder_id": "1hj8DNQXyarTqFHp0Pq12kex0XUtDQtd2",
+    # ZIP file ID containing: best.pt, recognition_best.pt, char_tokenizer.json, en_receipt/, vn_receipt/
+    "zip_file_id": "1hj8DNQXyarTqFHp0Pq12kex0XUtDQtd2",  # Replace with your Data_Models_OCR.zip file ID
 }
 
 
@@ -133,33 +135,48 @@ GDRIVE_CONFIG = {
 def download_from_gdrive():
     """Download models and datasets from Google Drive on first run."""
     import os
+    import zipfile
+    import shutil
     
     base_dir = Path("/tmp/ocr_receipt")
     base_dir.mkdir(parents=True, exist_ok=True)
     
-    combined_folder_id = GDRIVE_CONFIG["combined_folder_id"]
+    # File ID của Data_Models_OCR.zip (lấy từ Google Drive sharing link)
+    zip_file_id = GDRIVE_CONFIG.get("zip_file_id", None)
     
     status_info = st.empty()
     
     try:
-        # Download combined folder (models + data)
-        if combined_folder_id != "YOUR_FOLDER_ID":
-            # Check if already downloaded
+        if zip_file_id and zip_file_id != "YOUR_ZIP_FILE_ID":
+            # Check if already extracted
             if not (base_dir / "vn_receipt").exists() or not (base_dir / "best.pt").exists():
-                status_info.info("📦 Downloading models and datasets from Google Drive (this may take 5-10 minutes)...")
-                gdown.download_folder(
-                    url=f"https://drive.google.com/drive/folders/{combined_folder_id}",
-                    output=str(base_dir),
-                    quiet=False,
-                    skip_subdirs=False
+                status_info.info("📦 Downloading from Google Drive (this may take 5-10 minutes)...")
+                
+                # Download zip file
+                zip_path = base_dir / "data_models.zip"
+                gdown.download(
+                    url=f"https://drive.google.com/uc?id={zip_file_id}",
+                    output=str(zip_path),
+                    quiet=False
                 )
+                
+                status_info.info("📦 Extracting files...")
+                
+                # Extract zip
+                with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                    zip_ref.extractall(base_dir)
+                
+                # Remove zip after extraction
+                zip_path.unlink()
+                
                 status_info.success("✅ All files ready (models + datasets)")
         else:
-            status_info.error("❌ Please configure GDRIVE_CONFIG with your folder ID")
+            status_info.error("❌ Please configure GDRIVE_CONFIG with your zip file ID")
+            status_info.info("Get ID from: https://drive.google.com/file/d/YOUR_FILE_ID/view")
             return None, None
         
         status_info.empty()
-        return str(base_dir), str(base_dir)  # Both point to same base dir
+        return str(base_dir), str(base_dir)
     
     except Exception as e:
         status_info.error(f"❌ Download error: {e}")
