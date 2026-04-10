@@ -2,9 +2,9 @@
 
 OCR Receipt Explorer is an end-to-end optical character recognition (OCR) project for receipt images. It combines YOLOv8 text detection with a Transformer-based text recognition model to extract and digitize receipt content from Vietnamese and English receipts. The system features an interactive Streamlit app for browsing samples, uploading images, and viewing OCR results with visualization.
 
-**Link Deployed**: https://yolo-transformer-ocr.streamlit.app/
+**Link Deployed**: [OCR Receipt App](https://yolo-transformer-ocr.streamlit.app/)
 
-**Link Dataset & Models**: https://drive.google.com/file/d/1R-Fb23ysgbei2ienMpCcWlGX2KULF3Q8/view?usp=sharing
+**Link Dataset & Models**: [Data and Models](https://drive.google.com/file/d/1R-Fb23ysgbei2ienMpCcWlGX2KULF3Q8/view?usp=sharing)
 
 <img width="1907" height="944" alt="image" src="https://github.com/user-attachments/assets/912f6065-1f5d-40c3-b456-51380046dc9f" />
 
